@@ -1,3 +1,7 @@
+use std::fs;
+
+use scraper::{Html, Selector};
+// use html_parser::Dom;
 use serde::{Deserialize, Serialize};
 
 fn get_book_url(client: reqwest::blocking::Client, isbn: &str) -> String {
@@ -10,13 +14,55 @@ fn get_book_url(client: reqwest::blocking::Client, isbn: &str) -> String {
     r[0].url.clone()
 }
 
-// fn get_book_metadata_from_url(client: reqwest::blocking::Client, url: String) {
-//     let resp = client
-//         .get(format!("https://www.babelio.com/{url}"))
-//         .send()
-//         .unwrap();
-    
-// }
+fn get_book_metadata_from_url(client: reqwest::blocking::Client, url: String) {
+    /* let resp = client
+    .get(format!("https://www.babelio.com/{url}"))
+    .send()
+    .unwrap(); */
+    let html = fs::read_to_string("test/babelio_response.html").unwrap();
+    let doc = Html::parse_document(html.as_str());
+
+    let selector = Selector::parse("#d_bio").unwrap();
+    let mut res = doc.select(&selector);
+
+    let d_bio = res.next().expect("There should be exactly one element with id 'd_bio'");
+    let span = d_bio
+            .children()
+            .nth(1)
+            .unwrap()
+            .children()
+            .nth(1)
+            .unwrap()
+            .value()
+            .as_element()
+            .unwrap()
+            .attr("onclick").unwrap();
+        println!("My span {:?}", span);
+
+    /* let voir_plus_id = "type:
+    1
+    id_obj:
+    827593"; */
+
+    /*
+    let mut params = std::collections::HashMap::from(
+        [("type", "1"), ("id_obj", "827593")]
+    );
+
+    let voir_plus_resp = client.post("https://www.babelio.com/aj_voir_plus_a.php").form(&params).send().unwrap();
+
+    let blurb = voir_plus_resp.text().unwrap();
+    */
+
+    // assert!(Dom::parse(html.as_str()).is_ok());
+    /* let doc = roxmltree::Document::parse(xml_doc.as_str()).unwrap();
+    let elem = doc
+        .descendants()
+        .find(|n| n.attribute("id") == Some("rect1"))
+        .unwrap();
+    println!("{:?}", elem.tag_name());
+    assert!(elem.has_tag_name("rect")); */
+}
 
 struct BookMetaData {
     title: String,
@@ -30,9 +76,11 @@ struct BookMetaData {
 fn main() {
     let client = reqwest::blocking::Client::builder().build().unwrap();
 
-    let book_url = get_book_url(client, "9782266071529");
+    /*let book_url = get_book_url(client, "9782266071529");
 
-    println!("book_url {:#?}", book_url);
+    println!("book_url {:#?}", book_url); */
+
+    get_book_metadata_from_url(client, String::from("dfds"));
 }
 
 #[derive(Serialize, Deserialize, Debug)]
