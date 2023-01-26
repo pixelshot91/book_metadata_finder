@@ -1,6 +1,10 @@
 mod parser;
 mod request;
 
+// Possible data source
+// https://www.babelio.com/      -> title, author, blurb and keyword
+// https://www.isbnsearcher.com/ -> title, author, blurb
+
 fn get_book_metadata_from_url(client: &reqwest::blocking::Client, url: String) -> BookMetaData {
     let book_page = request::get_book_page(client, url);
     let id_obj = parser::extract_id_obj(book_page);
