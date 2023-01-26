@@ -11,10 +11,8 @@ fn get_book_metadata_from_url(
     let blurb = request::get_book_blurb_see_more(client, &id_obj);
 
     common::BookMetaData {
-        blurb,
-        title: String::from(""),
-        author: String::from(""),
-        key_words: vec![],
+        blurb: Some(blurb),
+        ..Default::default()
     }
 }
 
