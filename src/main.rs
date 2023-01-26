@@ -1,5 +1,6 @@
 use std::fs;
 
+use regex::Regex;
 use scraper::{Html, Selector};
 // use html_parser::Dom;
 use serde::{Deserialize, Serialize};
@@ -22,22 +23,38 @@ fn get_book_metadata_from_url(client: reqwest::blocking::Client, url: String) {
     let html = fs::read_to_string("test/babelio_response.html").unwrap();
     let doc = Html::parse_document(html.as_str());
 
-    let selector = Selector::parse("#d_bio").unwrap();
+    let selector = Selector::parse("#d_bio").expect("Response should contain a element whose id is 'd_bio'");
     let mut res = doc.select(&selector);
 
-    let d_bio = res.next().expect("There should be exactly one element with id 'd_bio'");
+    let d_bio = res
+        .next()
+        .expect("There should be exactly one element with id 'd_bio'");
     let span = d_bio
-            .children()
-            .nth(1)
-            .unwrap()
-            .children()
-            .nth(1)
-            .unwrap()
-            .value()
-            .as_element()
-            .unwrap()
-            .attr("onclick").unwrap();
-        println!("My span {:?}", span);
+        .children()
+        .nth(1)
+        .expect("d_bio second child should be a span")
+        .children()
+        .nth(1)
+        .expect("style span should have a second child");
+    let onclick = span
+        .value()
+        .as_element()
+        .expect("style span second child should be a <a href ...>")
+        .attr("onclick")
+        .expect("<a href ...> should have a 'onclick' attribute");
+
+    println!("onclick {:?}", onclick);
+
+    let re = Regex::new(r"javascript:voir_plus_a\('#d_bio',1,(\d+)\);").unwrap();
+
+    let single_capture = re.captures_iter(onclick).next().expect("The onclick should match with the regex");
+    let id_obj = &single_capture[1];
+    println!("id_obj {:?}", id_obj);
+    // println!("found {} captures", re.captures_len());
+    /* for cap in re.captures_iter(onclick) {
+        println!("cap {}", &cap[1]);
+    } */
+
 
     /* let voir_plus_id = "type:
     1
@@ -55,13 +72,6 @@ fn get_book_metadata_from_url(client: reqwest::blocking::Client, url: String) {
     */
 
     // assert!(Dom::parse(html.as_str()).is_ok());
-    /* let doc = roxmltree::Document::parse(xml_doc.as_str()).unwrap();
-    let elem = doc
-        .descendants()
-        .find(|n| n.attribute("id") == Some("rect1"))
-        .unwrap();
-    println!("{:?}", elem.tag_name());
-    assert!(elem.has_tag_name("rect")); */
 }
 
 struct BookMetaData {
