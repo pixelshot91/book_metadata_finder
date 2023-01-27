@@ -39,3 +39,13 @@ BookMetaData {
 | [Google Books](https://www.google.fr/books/)  | title, author, blurb          | [A real API](https://developers.google.com/books/docs/overview) is available to look up a book by ISBN <br/> Some book can't be search by ISBN, even though a search by title can find them, and they display the right ISBN |
 | [ISBSearcher](https://www.isbnsearcher.com/)  | title, author, blurb          |                                                                                                                                                                  |
 | [Label Emmaus](https://www.label-emmaus.co/)  | title, author, blurb, genres  |                                                                                                                                                                  |
+
+### GoogleBooks
+GoogleBooks has some inconsistencies:
+https://www.googleapis.com/books/v1/volumes?q=isbn:9782744170812
+says te publishedDate is 2004.
+But https://www.googleapis.com/books/v1/volumes/DQUFSQAACAAJ
+says the publishedDate is 2005.
+
+In the first response, we don't hqve a publisher, in the second we have.
+In the first response, the title use a big C for "Cité", but in the second, it use a small 'c'

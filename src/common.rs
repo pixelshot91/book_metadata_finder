@@ -1,4 +1,4 @@
-#[derive(Default, Debug)]
+#[derive(Default, Debug, PartialEq)]
 pub struct BookMetaData {
     pub title: Option<String>,
     pub author: Option<String>,
