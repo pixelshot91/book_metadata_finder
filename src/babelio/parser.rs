@@ -45,7 +45,7 @@ mod tests {
 
     #[test]
     fn extract_id_obj_from_file() {
-        let html = std::fs::read_to_string("test/babelio_response.html").unwrap();
+        let html = std::fs::read_to_string("src/babelio/test/get_book.html").unwrap();
         let id_obj = extract_id_obj(html);
         assert_eq!(id_obj, "827593");
     }
