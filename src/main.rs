@@ -1,8 +1,10 @@
 mod babelio;
-mod google_books;
 mod common;
+mod google_books;
 
 fn main() {
-    // babelio::get_book_metadata_from_isbn("9782266071529");
-    google_books::get_book_metadata_from_isbn("9782744170812");
+    let isbn = "9782757862582";
+    let md = babelio::get_book_metadata_from_isbn(isbn);
+    // let md = google_books::get_book_metadata_from_isbn(isbn);
+    println!("md {:?}", md)
 }
