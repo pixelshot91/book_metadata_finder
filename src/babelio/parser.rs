@@ -57,25 +57,36 @@ fn extract_title_author_keywords(html: &str) -> BookMetaData {
     )
     .as_str());
     println!("bookscope {:#?}", book_scope);
-    let title_select = html_select("h1[itemprop=\"name\"]");
+    let title_select = html_select("[itemprop=\"name\"]");
     let book_sub_html = scraper::Html::parse_document(&book_scope.html());
-    let mut res =  book_scope.select(&title_select);
-    /* let (mut res, res_copy) = res.tee();
+    let mut res = book_scope.select(&title_select);
+    /*  let (mut res, res_copy) = res.tee();
     for r in res_copy {
-        println!("r = {:#?}", r);
-    } */
+        println!("XXXXXXXXXXXXXXXXXX = {:#?}", r);
+    }
+    println!("1111111111 = {:?}", res.next());
+    println!("222222222 = {:?}", res.next());
+    println!("3333333333 = {:?}", res.next());
+    println!("444444444444 = {:?}", res.next());
+    let mut res = res.peekable();
     // println!("{:?}", res.size_hint());
-    let title = dbg!(res
+    println!("{:?}", res.peek());
+    let title = res
+        .peek() */
+    let title = res
         .next()
+        .expect("There should be at least one element with itemprop=\"name\"")
+        .first_child()
         .unwrap()
         .first_child()
-        .unwrap().first_child().unwrap())
+        .unwrap()
         .value()
         .as_text()
         .unwrap()
         .to_string();
+    println!("TITLE ========= {:?}", title);
 
-    let author_scope = book_scope.select(&html_select("[itemprop=\"author\"][itemscope][itemtype=\"https://schema.org/Person\"]")).exactly_one().expect(format!(
+    /*let author_scope = book_scope.select(&html_select("[itemprop=\"author\"][itemscope][itemtype=\"https://schema.org/Person\"]")).exactly_one().expect(format!(
             "Response should contain a element whose itemprop=\"author\" and itemscope and itemtype=\"https://schema.org/Person\", html is {:?}",
             42 //html
         )
@@ -97,11 +108,11 @@ fn extract_title_author_keywords(html: &str) -> BookMetaData {
     let keywords = keywords_scope
         .children()
         .map(|c| c.value().as_text().unwrap().to_string())
-        .collect();
+        .collect();*/
     BookMetaData {
         title: Some(title),
-        author: Some(author),
-        key_words: Some(keywords),
+        // author: Some(author),
+        // key_words: Some(keywords),
         ..Default::default()
     }
 }
@@ -118,7 +129,7 @@ mod tests {
     }
     #[test]
     fn extract_title_author_keywords_from_file() {
-        let html = std::fs::read_to_string("src/babelio/test/get_book.html").unwrap();
+        let html = std::fs::read_to_string("src/babelio/test/get_book_minimal.html").unwrap();
         let title_author_keywords = extract_title_author_keywords(&html);
         assert_eq!(
             title_author_keywords,
