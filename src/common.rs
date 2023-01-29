@@ -7,3 +7,7 @@ pub struct BookMetaData {
     pub blurb: Option<String>,
     pub key_words: Option<Vec<String>>,
 }
+
+pub fn html_select(sel: &str) -> scraper::Selector {
+    scraper::Selector::parse("h1[itemprop=\"name\"]").unwrap()
+}
