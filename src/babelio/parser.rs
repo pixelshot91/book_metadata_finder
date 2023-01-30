@@ -59,7 +59,7 @@ fn extract_title_author_keywords(html: &str) -> BookMetaData {
     println!("bookscope {:#?}", book_scope);
     let title_select = html_select("[itemprop=\"name\"]");
     let book_sub_html = scraper::Html::parse_document(&book_scope.html());
-    let mut res = book_scope.select(&title_select);
+    let mut res2 = book_scope.select(&title_select).into_iter();
     /*  let (mut res, res_copy) = res.tee();
     for r in res_copy {
         println!("XXXXXXXXXXXXXXXXXX = {:#?}", r);
@@ -73,7 +73,12 @@ fn extract_title_author_keywords(html: &str) -> BookMetaData {
     println!("{:?}", res.peek());
     let title = res
         .peek() */
-    let title = res
+    // The iterator from select is circular.
+    // The first next does not ouput the first element, but the second one which does not exit, so it returns None
+    // I call next first to flush the None.
+    // The next None will output the third element, which does not exist, so it ouputs the first element
+    // res2.next();
+    let title = res2
         .next()
         .expect("There should be at least one element with itemprop=\"name\"")
         .first_child()
@@ -83,24 +88,66 @@ fn extract_title_author_keywords(html: &str) -> BookMetaData {
         .value()
         .as_text()
         .unwrap()
+        .trim()
         .to_string();
     println!("TITLE ========= {:?}", title);
 
-    /*let author_scope = book_scope.select(&html_select("[itemprop=\"author\"][itemscope][itemtype=\"https://schema.org/Person\"]")).exactly_one().expect(format!(
+    let binding =
+        html_select("[itemprop=\"author\"][itemscope][itemtype=\"https://schema.org/Person\"]");
+    let mut r = book_scope.select(&binding);
+    /* println!("1111111111 = {:?}", r.next());
+    println!("222222222 = {:?}", r.next());
+    println!("3333333333 = {:?}", r.next());
+    println!("444444444444 = {:?}", r.next()); */
+    /* for r in book_scope.select(&html_select("[itemprop=\"author\"][itemscope][itemtype=\"https://schema.org/Person\"]")) {
+        println!("AAAAAAAAAAUTHOR r = {:?}", r);
+    } */
+    // r.next();
+    let author_scope = r.exactly_one().expect(format!(
             "Response should contain a element whose itemprop=\"author\" and itemscope and itemtype=\"https://schema.org/Person\", html is {:?}",
             42 //html
         )
         .as_str());
-    let author = author_scope
+
+    let author_span = author_scope
         .first_child()
-        .unwrap()
+        .expect("author_scope shoud have a first child <a ...>")
+        .first_child()
+        .expect("author scope > a shoud have a first child <span ...>");
+    let author_first_name = author_span
+        .first_child()
+        .expect("author scope > a > span shoud have a first child which is first name")
+        .value()
+        .as_text()
+        .expect("should be a text")
+        .to_string();
+    let author_last_name = author_span
+        .children()
+        .nth(1)
+        .expect("author scope > a > span shoud have a second child which is the last name")
         .first_child()
         .unwrap()
         .value()
         .as_text()
-        .unwrap()
+        .expect("should be a text")
         .to_string();
-
+    /*dbg!(author_scope.html());
+    let author_1 = &author_scope
+        .first_child()
+        .expect("author scope shoud have a first child <a ...>");
+    let author_1_clone = author_1.clone();
+    for c in author_1_clone.children() {
+        println!("c = {:?}", c.value());
+    }
+     let author_a = author_1.children().nth(1)
+        .expect("author scope > a shoud have a second child of author first name")
+        .value();
+    dbg!(author_a.as_text());
+    let author = author_a
+        .as_text()
+        .unwrap()
+        .to_string();*/
+    /*
     let keywords_scope = book_scope
         .select(&html_select("p[class=\"tags\"]"))
         .exactly_one()
@@ -111,7 +158,11 @@ fn extract_title_author_keywords(html: &str) -> BookMetaData {
         .collect();*/
     BookMetaData {
         title: Some(title),
-        // author: Some(author),
+        author: Some(format!(
+            "{} {}",
+            author_first_name.trim(),
+            author_last_name.trim()
+        )),
         // key_words: Some(keywords),
         ..Default::default()
     }

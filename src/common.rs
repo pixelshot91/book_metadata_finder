@@ -9,5 +9,5 @@ pub struct BookMetaData {
 }
 
 pub fn html_select(sel: &str) -> scraper::Selector {
-    scraper::Selector::parse("h1[itemprop=\"name\"]").unwrap()
+    scraper::Selector::parse(sel).unwrap()
 }
