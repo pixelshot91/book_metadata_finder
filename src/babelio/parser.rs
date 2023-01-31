@@ -1,8 +1,8 @@
 use crate::common::{html_select, BookMetaData};
 use itertools::Itertools;
 
-pub fn extract_id_obj(html: String) -> String {
-    let doc = scraper::Html::parse_document(html.as_str());
+pub fn extract_id_obj(html: &str) -> String {
+    let doc = scraper::Html::parse_document(html);
 
     let selector = scraper::Selector::parse("#d_bio").expect(
         format!(
@@ -46,7 +46,7 @@ pub fn extract_id_obj(html: String) -> String {
     String::from(id_obj)
 }
 
-fn extract_title_author_keywords(html: &str) -> BookMetaData {
+pub fn extract_title_author_keywords(html: &str) -> BookMetaData {
     let doc = scraper::Html::parse_document(html);
 
     let book_select = html_select("div[itemscope][itemtype=\"https://schema.org/Book\"]");
@@ -58,26 +58,7 @@ fn extract_title_author_keywords(html: &str) -> BookMetaData {
     .as_str());
     println!("bookscope {:#?}", book_scope);
     let title_select = html_select("[itemprop=\"name\"]");
-    let book_sub_html = scraper::Html::parse_document(&book_scope.html());
     let mut res2 = book_scope.select(&title_select).into_iter();
-    /*  let (mut res, res_copy) = res.tee();
-    for r in res_copy {
-        println!("XXXXXXXXXXXXXXXXXX = {:#?}", r);
-    }
-    println!("1111111111 = {:?}", res.next());
-    println!("222222222 = {:?}", res.next());
-    println!("3333333333 = {:?}", res.next());
-    println!("444444444444 = {:?}", res.next());
-    let mut res = res.peekable();
-    // println!("{:?}", res.size_hint());
-    println!("{:?}", res.peek());
-    let title = res
-        .peek() */
-    // The iterator from select is circular.
-    // The first next does not ouput the first element, but the second one which does not exit, so it returns None
-    // I call next first to flush the None.
-    // The next None will output the third element, which does not exist, so it ouputs the first element
-    // res2.next();
     let title = res2
         .next()
         .expect("There should be at least one element with itemprop=\"name\"")
@@ -94,20 +75,11 @@ fn extract_title_author_keywords(html: &str) -> BookMetaData {
 
     let binding =
         html_select("[itemprop=\"author\"][itemscope][itemtype=\"https://schema.org/Person\"]");
-    let mut r = book_scope.select(&binding);
-    /* println!("1111111111 = {:?}", r.next());
-    println!("222222222 = {:?}", r.next());
-    println!("3333333333 = {:?}", r.next());
-    println!("444444444444 = {:?}", r.next()); */
-    /* for r in book_scope.select(&html_select("[itemprop=\"author\"][itemscope][itemtype=\"https://schema.org/Person\"]")) {
-        println!("AAAAAAAAAAUTHOR r = {:?}", r);
-    } */
-    // r.next();
-    let author_scope = r.exactly_one().expect(format!(
-            "Response should contain a element whose itemprop=\"author\" and itemscope and itemtype=\"https://schema.org/Person\", html is {:?}",
-            42 //html
-        )
-        .as_str());
+    let r = book_scope.select(&binding);
+
+    let author_scope = r.exactly_one().expect(
+            "Response should contain a element whose itemprop=\"author\" and itemscope and itemtype=\"https://schema.org/Person\""
+        );
 
     let author_span = author_scope
         .first_child()
@@ -131,31 +103,24 @@ fn extract_title_author_keywords(html: &str) -> BookMetaData {
         .as_text()
         .expect("should be a text")
         .to_string();
-    /*dbg!(author_scope.html());
-    let author_1 = &author_scope
-        .first_child()
-        .expect("author scope shoud have a first child <a ...>");
-    let author_1_clone = author_1.clone();
-    for c in author_1_clone.children() {
-        println!("c = {:?}", c.value());
-    }
-     let author_a = author_1.children().nth(1)
-        .expect("author scope > a shoud have a second child of author first name")
-        .value();
-    dbg!(author_a.as_text());
-    let author = author_a
-        .as_text()
-        .unwrap()
-        .to_string();*/
-    /*
+
     let keywords_scope = book_scope
-        .select(&html_select("p[class=\"tags\"]"))
+        .select(&html_select("[class=\"tags\"]"))
         .exactly_one()
         .unwrap();
     let keywords = keywords_scope
         .children()
-        .map(|c| c.value().as_text().unwrap().to_string())
-        .collect();*/
+        .filter_map(|c| {
+            Some(
+                c.first_child()?
+                    .value()
+                    .as_text()
+                    .expect("c should be a text")
+                    .trim()
+                    .to_string(),
+            )
+        })
+        .collect();
     BookMetaData {
         title: Some(title),
         author: Some(format!(
@@ -163,7 +128,7 @@ fn extract_title_author_keywords(html: &str) -> BookMetaData {
             author_first_name.trim(),
             author_last_name.trim()
         )),
-        // key_words: Some(keywords),
+        key_words: Some(keywords),
         ..Default::default()
     }
 }
@@ -175,11 +140,11 @@ mod tests {
     #[test]
     fn extract_id_obj_from_file() {
         let html = std::fs::read_to_string("src/babelio/test/get_book.html").unwrap();
-        let id_obj = extract_id_obj(html);
+        let id_obj = extract_id_obj(&html);
         assert_eq!(id_obj, "827593");
     }
     #[test]
-    fn extract_title_author_keywords_from_file() {
+    pub fn extract_title_author_keywords_from_file() {
         let html = std::fs::read_to_string("src/babelio/test/get_book_minimal.html").unwrap();
         let title_author_keywords = extract_title_author_keywords(&html);
         assert_eq!(
@@ -188,7 +153,32 @@ mod tests {
                 title: Some("Le nom de la bête".to_string()),
                 author: Some("Daniel Easterman".to_string()),
                 blurb: None,
-                key_words: None,
+                key_words: Some(
+                    [
+                        "roman",
+                        "fantastique",
+                        "policier historique",
+                        "romans policiers et polars",
+                        "thriller",
+                        "terreur",
+                        "action",
+                        "démocratie",
+                        "mystique",
+                        "islam",
+                        "intégrisme religieux",
+                        "catholicisme",
+                        "religion",
+                        "terrorisme",
+                        "extrémisme",
+                        "egypte",
+                        "médias",
+                        "thriller religieux",
+                        "littérature irlandaise",
+                        "irlande"
+                    ]
+                    .map(|s| s.to_string())
+                    .to_vec()
+                ),
             }
         );
     }
