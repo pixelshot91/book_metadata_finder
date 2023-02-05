@@ -22,11 +22,11 @@ pub fn extract_id_obj(html: &str) -> String {
     );
     let span = d_bio
         .children()
-        .nth(1)
-        .expect("d_bio second child should be a span")
+        .rev().nth(1)
+        .expect("d_bio should have a second to last children (the style span)")
         .children()
         .nth(1)
-        .expect("style span should have a second child");
+        .expect("d_bio second child should be a style span which should have a second child (the onclick)");
     let onclick = span
         .value()
         .as_element()
