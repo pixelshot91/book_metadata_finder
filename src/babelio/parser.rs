@@ -34,8 +34,6 @@ pub fn extract_id_obj(html: &str) -> String {
         .attr("onclick")
         .expect("<a href ...> should have a 'onclick' attribute");
 
-    println!("onclick {:?}", onclick);
-
     let re = regex::Regex::new(r"javascript:voir_plus_a\('#d_bio',1,(\d+)\);").unwrap();
 
     let single_capture = re
@@ -56,7 +54,6 @@ pub fn extract_title_author_keywords(html: &str) -> BookMetaData {
         html
     )
     .as_str());
-    println!("bookscope {:#?}", book_scope);
     let title_select = html_select("[itemprop=\"name\"]");
     let mut res2 = book_scope.select(&title_select).into_iter();
     let title = res2
@@ -71,7 +68,6 @@ pub fn extract_title_author_keywords(html: &str) -> BookMetaData {
         .unwrap()
         .trim()
         .to_string();
-    println!("TITLE ========= {:?}", title);
 
     let binding =
         html_select("[itemprop=\"author\"][itemscope][itemtype=\"https://schema.org/Person\"]");

@@ -17,30 +17,40 @@ struct BabelioISBNResponse {
 }
 
 pub fn get_book_url(client: &CachedClient, isbn: &str) -> String {
-    client.get_from_cache("cache/babelio/get_book_url.html", |http_client| {
-        let resp = http_client
-            .post("https://www.babelio.com/aj_recherche.php")
-            .body(format!("{{\"isMobile\":false,\"term\":\"{}\"}}", isbn))
-            .send()
-            .unwrap();
-        let r = resp.json::<Vec<BabelioISBNResponse>>().unwrap();
-        r[0].url.clone()
-    })
+    client.get_from_cache(
+        format!("cache/babelio/get_book_url_{}.html", isbn).as_str(),
+        |http_client| {
+            let resp = http_client
+                .post("https://www.babelio.com/aj_recherche.php")
+                .body(format!("{{\"isMobile\":false,\"term\":\"{}\"}}", isbn))
+                .send()
+                .unwrap();
+            let r = resp.json::<Vec<BabelioISBNResponse>>().unwrap();
+            r[0].url.clone()
+        },
+    )
 }
 
 pub fn get_book_page(client: &CachedClient, url: String) -> String {
-    client.get_from_cache("cache/babelio/get_book_page.html", |http_client| {
-        let resp = http_client
-            .get(format!("https://www.babelio.com{url}"))
-            .send()
-            .unwrap();
-        resp.text().unwrap()
-    })
+    client.get_from_cache(
+        format!(
+            "cache/babelio/get_book_page_{}.html",
+            url.replace("/", "_slash_")
+        )
+        .as_str(),
+        |http_client| {
+            let resp = http_client
+                .get(format!("https://www.babelio.com{url}"))
+                .send()
+                .unwrap();
+            resp.text().unwrap()
+        },
+    )
 }
 
 pub fn get_book_blurb_see_more(client: &CachedClient, id_obj: &str) -> String {
     client.get_from_cache(
-        "cache/babelio/get_book_blurb_see_more.html",
+        format!("cache/babelio/get_book_blurb_see_more_{}.html", id_obj).as_str(),
         |http_client| {
             let params = std::collections::HashMap::from([("type", "1"), ("id_obj", id_obj)]);
 
