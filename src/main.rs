@@ -46,13 +46,4 @@ fn main() {
 
     let custom_message = "custom_message";
     println!("{books_titles}\n\nRésumé:\n{blurbs}\n\n{custom_message}\n\nMots-clés:\n{keywords}")
-    /*  let isbn = "9782757862582";
-    let isbn = "9782266023160";
-    let isbn = "9782253029854";
-    let isbn = "9782277223634";
-    let isbn = "9782266026659";
-
-    let md = babelio::get_book_metadata_from_isbn(isbn);
-    // let md = google_books::get_book_metadata_from_isbn(isbn);
-    println!("md {:?}", md) */
 }
