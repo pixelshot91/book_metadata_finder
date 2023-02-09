@@ -129,6 +129,10 @@ pub fn extract_title_author_keywords(html: &str) -> BookMetaData {
     }
 }
 
+pub fn parse_blurb(raw_blurb: &str) -> Option<String> {
+    Some(raw_blurb.replace("<br>", "\n"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
