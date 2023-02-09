@@ -38,7 +38,10 @@ fn main() {
         .clone()
         .map(|b| format!("{} de {}", b.title.unwrap(), b.author.unwrap()))
         .join("\n");
-    let blurbs = books.clone().map(|b| b.blurb.unwrap()).join("\n");
+    let blurbs = books
+        .clone()
+        .map(|b| format!("{}:\n{}\n", b.title.unwrap(), b.blurb.unwrap()))
+        .join("\n");
     let keywords = books.flat_map(|b| b.key_words.unwrap()).unique().join(", ");
 
     let custom_message = "custom_message";
