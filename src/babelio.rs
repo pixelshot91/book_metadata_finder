@@ -9,8 +9,14 @@ pub fn get_book_metadata_from_isbn(isbn: &str) -> common::BookMetaData {
     };
     let book_url = request::get_book_url(&cached_client, isbn);
     let book_page = request::get_book_page(&cached_client, book_url);
-    let id_obj = parser::extract_id_obj(&book_page);
-    let raw_blurb = request::get_book_blurb_see_more(&cached_client, &id_obj);
+    let blurb_res = parser::extract_blurb(&book_page);
+
+    let raw_blurb = match blurb_res {
+        parser::BlurbRes::SmallBlurb(blurb) => blurb,
+        parser::BlurbRes::BigBlurb(id_obj) => {
+            request::get_book_blurb_see_more(&cached_client, &id_obj)
+        }
+    };
 
     let mut res = parser::extract_title_author_keywords(&book_page);
     res.blurb = parser::parse_blurb(&raw_blurb);

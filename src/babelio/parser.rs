@@ -1,7 +1,14 @@
 use crate::common::{html_select, BookMetaData};
 use itertools::Itertools;
 
-pub fn extract_id_obj(html: &str) -> String {
+
+#[derive(PartialEq, Debug)]
+pub enum BlurbRes {
+    SmallBlurb(String),
+    BigBlurb(String),
+}
+
+pub fn extract_blurb(html: &str) -> BlurbRes {
     let doc = scraper::Html::parse_document(html);
 
     let selector = scraper::Selector::parse("#d_bio").expect(
@@ -20,13 +27,23 @@ pub fn extract_id_obj(html: &str) -> String {
         )
         .as_str(),
     );
-    let span = d_bio
+    let dbio_second_to_last_child = d_bio
         .children()
-        .rev().nth(1)
-        .expect("d_bio should have a second to last children (the style span)")
-        .children()
+        .rev()
         .nth(1)
-        .expect("d_bio second child should be a style span which should have a second child (the onclick)");
+        .expect("d_bio should have a second to last children (the style span)");
+    if dbio_second_to_last_child.value().is_text() {
+        return BlurbRes::SmallBlurb(
+            dbio_second_to_last_child
+                .value()
+                .as_text()
+                .unwrap()
+                .to_string(),
+        );
+    }
+    let span = dbio_second_to_last_child.children().nth(1).expect(
+        "d_bio second child should be a style span which should have a second child (the onclick)",
+    );
     let onclick = span
         .value()
         .as_element()
@@ -41,7 +58,7 @@ pub fn extract_id_obj(html: &str) -> String {
         .next()
         .expect("The onclick should match with the regex");
     let id_obj = &single_capture[1];
-    String::from(id_obj)
+    BlurbRes::BigBlurb(String::from(id_obj))
 }
 
 pub fn extract_title_author_keywords(html: &str) -> BookMetaData {
@@ -130,7 +147,7 @@ pub fn extract_title_author_keywords(html: &str) -> BookMetaData {
 }
 
 pub fn parse_blurb(raw_blurb: &str) -> Option<String> {
-    Some(raw_blurb.replace("<br>", "\n"))
+    Some(raw_blurb.trim().replace("<br>", "\n"))
 }
 
 #[cfg(test)]
@@ -140,8 +157,8 @@ mod tests {
     #[test]
     fn extract_id_obj_from_file() {
         let html = std::fs::read_to_string("src/babelio/test/get_book.html").unwrap();
-        let id_obj = extract_id_obj(&html);
-        assert_eq!(id_obj, "827593");
+        let id_obj = extract_blurb(&html);
+        assert_eq!(id_obj, BlurbRes::BigBlurb("827593".to_string()));
     }
     #[test]
     pub fn extract_title_author_keywords_from_file() {
