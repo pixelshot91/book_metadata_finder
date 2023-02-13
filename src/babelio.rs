@@ -31,12 +31,12 @@ mod tests {
 
     #[test]
     fn extract_id_obj_from_file() {
-        let isbn = "9782266172363";
+        let isbn = "9782266071529";
         let md = get_book_metadata_from_isbn(isbn);
         assert_eq!(md, BookMetaData {
             title: Some("Le nom de la bête".to_string()),
             authors: Some(vec![Author{first_name:"Daniel".to_string(), last_name: "Easterman".to_string()}]),
-            blurb: Some("Saint-Libéral, petit village de Corrèze, début du XXe siècle. Dans la neige crissent trois paires de sabots. Les enfants relèvent les collets. Sept grives ! C'est un beau butin. Qu'à l'approche des loups il faudra leur abandonner... Ce qu'il faut laisser derrière soi, déjà, pour survivre ! <br>Plus tard, faute de grives, ils sacrifieront les coutumes d'antan, un savoir-faire dépassé, un père, une mère, une terre. Nous sommes en 1914, et les loups ont passé les Vosges...<br>		".to_string()),
+            blurb: Some("Janvier 1999. Peu à peu, les pays arabes ont sombré dans l'intégrisme. Les attentats terroristes se multiplient en Europe attisant la haine et le racisme. Au Caire, un coup d'état fomenté par les fondamentalistes permet à leur chef Al-Kourtoubi de s'installer au pouvoir et d'instaurer la terreur. Le réseau des agents secrets britanniques en Égypte ayant été anéanti, Michael Hunt est obligé de reprendre du service pour enquêter sur place. Aidé par son frère Paul, prêtre catholique et agent du Vatican, il apprend que le Pape doit se rendre à Jérusalem pour participer à une conférence œcuménique. Au courant de ce projet, le chef des fondamentalistes a prévu d'enlever le saint père.Dans ce récit efficace et à l'action soutenue, le héros lutte presque seul contre des groupes fanatiques puissants et sans grand espoir de réussir. Comme dans tous ses autres livres, Daniel Easterman, spécialiste de l'islam, part du constat que le Mal est puissant et il dénonce l'intolérance et les nationalismes qui engendrent violence et chaos.--Claude Mesplède\n".to_string()),
             key_words: Some(
                 [
                     "roman",
