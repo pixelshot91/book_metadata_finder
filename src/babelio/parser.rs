@@ -1,7 +1,6 @@
 use crate::common::{html_select, BookMetaData};
 use itertools::Itertools;
 
-
 #[derive(PartialEq, Debug)]
 pub enum BlurbRes {
     SmallBlurb(String),
@@ -90,32 +89,38 @@ pub fn extract_title_author_keywords(html: &str) -> BookMetaData {
         html_select("[itemprop=\"author\"][itemscope][itemtype=\"https://schema.org/Person\"]");
     let r = book_scope.select(&binding);
 
-    let author_scope = r.exactly_one().expect(
-            "Response should contain a element whose itemprop=\"author\" and itemscope and itemtype=\"https://schema.org/Person\""
-        );
-
-    let author_span = author_scope
-        .first_child()
-        .expect("author_scope shoud have a first child <a ...>")
-        .first_child()
-        .expect("author scope > a shoud have a first child <span ...>");
-    let author_first_name = author_span
-        .first_child()
-        .expect("author scope > a > span shoud have a first child which is first name")
-        .value()
-        .as_text()
-        .expect("should be a text")
-        .to_string();
-    let author_last_name = author_span
-        .children()
-        .nth(1)
-        .expect("author scope > a > span shoud have a second child which is the last name")
-        .first_child()
-        .unwrap()
-        .value()
-        .as_text()
-        .expect("should be a text")
-        .to_string();
+    let authors = r
+        .map(|author_scope| {
+            let author_span = author_scope
+                .first_child()
+                .expect("author_scope shoud have a first child <a ...>")
+                .first_child()
+                .expect("author scope > a shoud have a first child <span ...>");
+            let first_name = author_span
+                .first_child()
+                .expect("author scope > a > span shoud have a first child which is first name")
+                .value()
+                .as_text()
+                .expect("should be a text")
+                .trim()
+                .to_string();
+            let last_name = author_span
+                .children()
+                .nth(1)
+                .expect("author scope > a > span shoud have a second child which is the last name")
+                .first_child()
+                .unwrap()
+                .value()
+                .as_text()
+                .expect("should be a text")
+                .trim()
+                .to_string();
+            crate::common::Author {
+                first_name,
+                last_name,
+            }
+        })
+        .collect_vec();
 
     let keywords_scope = book_scope
         .select(&html_select("[class=\"tags\"]"))
@@ -136,11 +141,7 @@ pub fn extract_title_author_keywords(html: &str) -> BookMetaData {
         .collect();
     BookMetaData {
         title: Some(title),
-        author: Some(format!(
-            "{} {}",
-            author_first_name.trim(),
-            author_last_name.trim()
-        )),
+        authors: Some(authors),
         key_words: Some(keywords),
         ..Default::default()
     }
@@ -168,7 +169,10 @@ mod tests {
             title_author_keywords,
             BookMetaData {
                 title: Some("Le nom de la bête".to_string()),
-                author: Some("Daniel Easterman".to_string()),
+                authors: Some(vec![crate::common::Author {
+                    first_name: "Daniel".to_string(),
+                    last_name: "Easterman".to_string()
+                }]),
                 blurb: None,
                 key_words: Some(
                     [

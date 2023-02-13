@@ -36,7 +36,19 @@ fn main() {
         .map(|isbn| babelio::get_book_metadata_from_isbn(&isbn));
     let books_titles = books
         .clone()
-        .map(|b| format!("{} de {}", b.title.unwrap(), b.author.unwrap()))
+        .map(|b| {
+            format!(
+                "{} {}",
+                b.title.unwrap(),
+                vec_fmt(
+                    b.authors
+                        .unwrap()
+                        .iter()
+                        .map(|a| format!("{} {}", a.first_name, a.last_name))
+                        .collect_vec()
+                )
+            )
+        })
         .join("\n");
     let blurbs = books
         .clone()
@@ -46,4 +58,13 @@ fn main() {
 
     let custom_message = std::fs::read_to_string("custom_message.txt").unwrap();
     println!("{books_titles}\n\nRésumé:\n{blurbs}\n{custom_message}\nMots-clés:\n{keywords}")
+}
+
+fn vec_fmt(vec: Vec<String>) -> String {
+    match vec.len() {
+        0 => "".to_string(),
+        1 => format!("de {}", vec[0]),
+        2 => format!("de {} et {}", vec[0], vec[1]),
+        _ => panic!("More than 2 authors"),
+    }
 }
