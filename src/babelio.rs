@@ -2,37 +2,41 @@ use crate::{cached_client::CachedClient, common};
 mod parser;
 mod request;
 
-pub fn get_book_metadata_from_isbn(isbn: &str) -> Option<common::BookMetaData> {
-    let client = reqwest::blocking::Client::builder().build().unwrap();
-    let cached_client = CachedClient {
-        http_client: client,
-    };
-    let book_url = request::get_book_url(&cached_client, isbn)?;
-    let book_page = request::get_book_page(&cached_client, book_url);
-    let blurb_res = parser::extract_blurb(&book_page);
+pub struct Babelio;
 
-    let raw_blurb = match blurb_res {
-        parser::BlurbRes::SmallBlurb(blurb) => blurb,
-        parser::BlurbRes::BigBlurb(id_obj) => {
-            request::get_book_blurb_see_more(&cached_client, &id_obj)
-        }
-    };
+impl common::Provider for Babelio {
+    fn get_book_metadata_from_isbn(&self, isbn: &str) -> Option<common::BookMetaData> {
+        let client = reqwest::blocking::Client::builder().build().unwrap();
+        let cached_client = CachedClient {
+            http_client: client,
+        };
+        let book_url = request::get_book_url(&cached_client, isbn)?;
+        let book_page = request::get_book_page(&cached_client, book_url);
+        let blurb_res = parser::extract_blurb(&book_page);
 
-    let mut res = parser::extract_title_author_keywords(&book_page);
-    res.blurb = parser::parse_blurb(&raw_blurb);
-    Some(res)
+        let raw_blurb = match blurb_res {
+            parser::BlurbRes::SmallBlurb(blurb) => blurb,
+            parser::BlurbRes::BigBlurb(id_obj) => {
+                request::get_book_blurb_see_more(&cached_client, &id_obj)
+            }
+        };
+
+        let mut res = parser::extract_title_author_keywords(&book_page);
+        res.blurb = parser::parse_blurb(&raw_blurb);
+        Some(res)
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::common::{Author, BookMetaData};
+    use crate::common::{Author, BookMetaData, Provider};
 
     use super::*;
 
     #[test]
     fn extract_id_obj_from_file() {
         let isbn = "9782266071529";
-        let md = get_book_metadata_from_isbn(isbn);
+        let md = Babelio {}.get_book_metadata_from_isbn(isbn);
         assert_eq!(md, Some(BookMetaData {
             title: "Le nom de la bête".to_string(),
             authors: vec![Author{first_name:"Daniel".to_string(), last_name: "Easterman".to_string()}],

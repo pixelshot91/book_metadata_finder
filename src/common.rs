@@ -17,3 +17,7 @@ pub struct Author {
 pub fn html_select(sel: &str) -> scraper::Selector {
     scraper::Selector::parse(sel).unwrap()
 }
+
+pub trait Provider {
+    fn get_book_metadata_from_isbn(&self, isbn: &str) -> Option<BookMetaData>;
+}

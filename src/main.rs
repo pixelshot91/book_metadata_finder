@@ -31,11 +31,29 @@ fn main() {
         .collect();
 
     println!("isbns {:?}", isbns);
-    let books = isbns
+
+    let book_metadata_providers: Vec<Box<dyn common::Provider>> = vec![
+        Box::new(babelio::Babelio {}),
+        Box::new(google_books::GoogleBooks {}),
+    ];
+
+    let books: Vec<common::BookMetaData> = isbns
         .iter()
-        .map(|isbn| babelio::get_book_metadata_from_isbn(&isbn).unwrap());
+        .map(|isbn| {
+            for provider in &book_metadata_providers {
+                let res = provider.get_book_metadata_from_isbn(&isbn);
+                if let Some(r) = res {
+                    return r;
+                }
+            }
+            panic!("No provider find any information on book {}", isbn)
+            /* book_metadata_providers[0]
+            .get_book_metadata_from_isbn(&isbn)
+            .unwrap() */
+        })
+        .collect();
     let books_titles = books
-        .clone()
+        .iter()
         .map(|b| {
             format!(
                 "{} {}",
@@ -50,16 +68,15 @@ fn main() {
         })
         .join("\n");
     let blurbs = books
-        .clone()
-        .map(|b| format!("{}:\n{}\n", b.title, b.blurb.unwrap()))
+        .iter()
+        .map(|b| format!("{}:\n{}\n", b.title, b.blurb.as_ref().unwrap()))
         .join("\n");
-    let keywords = books.flat_map(|b| b.keywords).unique().join(", ");
-
+    let keywords = books.iter().flat_map(|b| &b.keywords).unique().join(", ");
 
     let custom_message = std::fs::read_to_string("custom_message.txt").unwrap();
 
     let mut ad = books_titles + "\n\nRésumé:\n" + &blurbs + "\n" + &custom_message;
-    if ! keywords.is_empty() {
+    if !keywords.is_empty() {
         ad = ad + "\nMots-clés:\n" + &keywords;
     }
 
