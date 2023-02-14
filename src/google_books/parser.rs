@@ -11,17 +11,16 @@ pub fn extract_metadata_from_self_link_response(html: &str) -> common::BookMetaD
     let s: structs::Item = serde_json::from_str(html).unwrap();
     let first_book = &s.volume_info;
     common::BookMetaData {
-        title: Some(first_book.title.to_string()),
-        authors: Some(
-            first_book
-                .authors
-                .iter()
-                .map(|s| common::Author {
-                    first_name: "".to_string(),
-                    last_name: s.to_string(),
-                })
-                .collect_vec(),
-        ),
+        title: first_book.title.to_string(),
+        authors: first_book
+            .authors
+            .iter()
+            .map(|s| common::Author {
+                first_name: "".to_string(),
+                last_name: s.to_string(),
+            })
+            .collect_vec(),
+
         blurb: first_book.description.map(|d| d.to_string()),
         ..Default::default()
     }
@@ -49,8 +48,8 @@ mod tests {
             std::fs::read_to_string("src/google_books/test/self_link_response.html").unwrap();
         let metadata = extract_metadata_from_self_link_response(&html);
         assert_eq!(metadata, BookMetaData{
-          title: Some("La cité de Dieu".to_string()),
-          authors: Some(vec![common::Author{first_name: "".to_string(), last_name: "Paulo Lins".to_string()}]),
+          title: "La cité de Dieu".to_string(),
+          authors:vec![common::Author{first_name: "".to_string(), last_name: "Paulo Lins".to_string()}],
           blurb: Some("Au Brésil, l'évolution d'un bidonville entre les années 1960 et 1980, à travers l'histoire de deux garçons qui suivent des voies différentes : l'un fait des études et s'efforce de devenir photographe, l'autre crée son premier gang et devient, quelques années plus tard, le maître de la cité.".to_string()),
           ..Default::default()
     });

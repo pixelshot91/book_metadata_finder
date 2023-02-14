@@ -33,16 +33,15 @@ fn main() {
     println!("isbns {:?}", isbns);
     let books = isbns
         .iter()
-        .map(|isbn| babelio::get_book_metadata_from_isbn(&isbn));
+        .map(|isbn| google_books::get_book_metadata_from_isbn(&isbn));
     let books_titles = books
         .clone()
         .map(|b| {
             format!(
                 "{} {}",
-                b.title.unwrap(),
+                b.title,
                 vec_fmt(
                     b.authors
-                        .unwrap()
                         .iter()
                         .map(|a| format!("{} {}", a.first_name, a.last_name))
                         .collect_vec()
@@ -52,9 +51,9 @@ fn main() {
         .join("\n");
     let blurbs = books
         .clone()
-        .map(|b| format!("{}:\n{}\n", b.title.unwrap(), b.blurb.unwrap()))
+        .map(|b| format!("{}:\n{}\n", b.title, b.blurb.unwrap()))
         .join("\n");
-    let keywords = books.flat_map(|b| b.key_words.unwrap()).unique().join(", ");
+    let keywords = books.flat_map(|b| b.keywords).unique().join(", ");
 
     let custom_message = std::fs::read_to_string("custom_message.txt").unwrap();
     println!("{books_titles}\n\nRésumé:\n{blurbs}\n{custom_message}\nMots-clés:\n{keywords}")

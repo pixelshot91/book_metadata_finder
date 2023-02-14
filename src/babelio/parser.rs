@@ -140,9 +140,9 @@ pub fn extract_title_author_keywords(html: &str) -> BookMetaData {
         })
         .collect();
     BookMetaData {
-        title: Some(title),
-        authors: Some(authors),
-        key_words: Some(keywords),
+        title,
+        authors,
+        keywords,
         ..Default::default()
     }
 }
@@ -168,38 +168,36 @@ mod tests {
         assert_eq!(
             title_author_keywords,
             BookMetaData {
-                title: Some("Le nom de la bête".to_string()),
-                authors: Some(vec![crate::common::Author {
+                title: "Le nom de la bête".to_string(),
+                authors: vec![crate::common::Author {
                     first_name: "Daniel".to_string(),
                     last_name: "Easterman".to_string()
-                }]),
+                }],
                 blurb: None,
-                key_words: Some(
-                    [
-                        "roman",
-                        "fantastique",
-                        "policier historique",
-                        "romans policiers et polars",
-                        "thriller",
-                        "terreur",
-                        "action",
-                        "démocratie",
-                        "mystique",
-                        "islam",
-                        "intégrisme religieux",
-                        "catholicisme",
-                        "religion",
-                        "terrorisme",
-                        "extrémisme",
-                        "egypte",
-                        "médias",
-                        "thriller religieux",
-                        "littérature irlandaise",
-                        "irlande"
-                    ]
-                    .map(|s| s.to_string())
-                    .to_vec()
-                ),
+                keywords: [
+                    "roman",
+                    "fantastique",
+                    "policier historique",
+                    "romans policiers et polars",
+                    "thriller",
+                    "terreur",
+                    "action",
+                    "démocratie",
+                    "mystique",
+                    "islam",
+                    "intégrisme religieux",
+                    "catholicisme",
+                    "religion",
+                    "terrorisme",
+                    "extrémisme",
+                    "egypte",
+                    "médias",
+                    "thriller religieux",
+                    "littérature irlandaise",
+                    "irlande"
+                ]
+                .map(|s| s.to_string())
+                .to_vec(),
             }
         );
     }
