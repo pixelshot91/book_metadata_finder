@@ -1,4 +1,5 @@
 use crate::cached_client::CachedClient;
+use itertools::Itertools;
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
 struct BabelioISBNResponse {
@@ -16,19 +17,22 @@ struct BabelioISBNResponse {
     url: String,
 }
 
-pub fn get_book_url(client: &CachedClient, isbn: &str) -> String {
-    client.get_from_cache(
+pub fn get_book_url(client: &CachedClient, isbn: &str) -> Option<String> {
+    let raw_search_results = client.get_from_cache(
         format!("cache/babelio/get_book_url_{}.html", isbn).as_str(),
         |http_client| {
-            let resp = http_client
+            http_client
                 .post("https://www.babelio.com/aj_recherche.php")
                 .body(format!("{{\"isMobile\":false,\"term\":\"{}\"}}", isbn))
                 .send()
-                .unwrap();
-            let r = resp.json::<Vec<BabelioISBNResponse>>().unwrap();
-            r[0].url.clone()
+                .unwrap()
+                .text()
+                .unwrap()
         },
-    )
+    );
+    let parsed: Vec<BabelioISBNResponse> = serde_json::from_str(&raw_search_results).unwrap();
+    let s = parsed.iter().exactly_one().ok()?.url.clone();
+    Some(s)
 }
 
 pub fn get_book_page(client: &CachedClient, url: String) -> String {
