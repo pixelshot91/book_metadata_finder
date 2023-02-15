@@ -56,7 +56,7 @@ fn main() {
         .iter()
         .map(|b| {
             format!(
-                "{} {}",
+                "\"{}\" {}",
                 b.title,
                 vec_fmt(
                     b.authors
