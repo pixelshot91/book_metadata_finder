@@ -34,7 +34,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn extract_id_obj_from_file() {
+    fn get_metadata_from_normal_book() {
         let isbn = "9782266071529";
         let md = Babelio {}.get_book_metadata_from_isbn(isbn);
         assert_eq!(md, Some(BookMetaData {
@@ -63,6 +63,26 @@ mod tests {
                     "thriller religieux",
                     "littérature irlandaise",
                     "irlande"
+                ]
+                .map(|s| s.to_string())
+                .to_vec(),
+        }));
+    }
+
+    #[test]
+    fn get_metadata_from_book_with_see_more_bug() {
+        let isbn = "9782070541898";
+        let md = Babelio {}.get_book_metadata_from_isbn(isbn);
+        assert_eq!(md, Some(BookMetaData {
+            title: "À la croisée des mondes, tome 2 : La tour des anges".to_string(),
+            authors: vec![Author{first_name:"Philip".to_string(), last_name: "Pullman".to_string()}],
+            blurb: Some(r#"Le jeune Will, à la recherche de son père disparu depuis de longues années, est persuadé d’avoir tué un homme. Dans sa fuite, il franchit une brèche presque invisible qui lui permet de passer dans un monde parallèle. 
+Là, à Cittàgazze, la ville au-delà de l’Aurore, il rencontre Lyra, l’héroïne des "Royaumes du Nord". Elle aussi cherche à rejoindre son père, elle aussi est investie d’une mission dont elle ne connaît pas encore toute l’importance. 
+Ensemble, les deux enfants devront lutter contre les forces obscures du mal et, pour accomplir leur quête, pénétrer dans la mystérieuse tour des Anges…
+"#.to_string()),
+            keywords:
+                [
+                    "aventure", "saga", "roman", "fantasy", "fantastique", "littérature jeunesse", "jeunesse", "steampunk", "littérature pour adolescents", "enfants", "magie", "amitié", "enfance", "science-fiction", "univers parallèles", "religion", "adolescence", "littérature anglaise", "littérature britannique", "20ème siècle",
                 ]
                 .map(|s| s.to_string())
                 .to_vec(),

@@ -26,38 +26,46 @@ pub fn extract_blurb(html: &str) -> BlurbRes {
         )
         .as_str(),
     );
-    let dbio_second_to_last_child = d_bio
-        .children()
-        .rev()
-        .nth(1)
-        .expect("d_bio should have a second to last children (the style span)");
-    if dbio_second_to_last_child.value().is_text() {
-        return BlurbRes::SmallBlurb(
-            dbio_second_to_last_child
-                .value()
-                .as_text()
-                .unwrap()
-                .to_string(),
-        );
+
+    // Some books do not folow the general strucuture: https://www.babelio.com/livres/Pullman--la-croisee-des-mondes-tome-2--La-tour-des-anges/59278
+    // It looks like a bug from Babelio because the style span do not close
+    // So I must use a css-style selector instead of going down the DOM tree
+    let s = scraper::Selector::parse("a[onclick^=\"javascript\"]").unwrap();
+    let mut onclick_elements = d_bio.select(&s);
+    let on_click_element = onclick_elements.next();
+    if let Some(_) = onclick_elements.next() {
+        panic!("There should be one or zero element with onclick attribute in the d_bio element");
     }
-    let span = dbio_second_to_last_child.children().nth(1).expect(
-        "d_bio second child should be a style span which should have a second child (the onclick)",
-    );
-    let onclick = span
-        .value()
-        .as_element()
-        .expect("style span second child should be a <a href ...>")
-        .attr("onclick")
-        .expect("<a href ...> should have a 'onclick' attribute");
+    match on_click_element {
+        None => {
+            let dbio_second_to_last_child = d_bio
+                .children()
+                .rev()
+                .nth(1)
+                .expect("d_bio should have a second to last children (the style span)");
+            BlurbRes::SmallBlurb(
+                dbio_second_to_last_child
+                    .value()
+                    .as_text()
+                    .unwrap()
+                    .to_string(),
+            )
+        }
+        Some(on_click_element) => {
+            let on_click = on_click_element
+                .value()
+                .attr("onclick")
+                .expect("<a href ...> should have a 'onclick' attribute");
+            let re = regex::Regex::new(r"javascript:voir_plus_a\('#d_bio',1,(\d+)\);").unwrap();
 
-    let re = regex::Regex::new(r"javascript:voir_plus_a\('#d_bio',1,(\d+)\);").unwrap();
-
-    let single_capture = re
-        .captures_iter(onclick)
-        .next()
-        .expect("The onclick should match with the regex");
-    let id_obj = &single_capture[1];
-    BlurbRes::BigBlurb(String::from(id_obj))
+            let single_capture = re
+                .captures_iter(on_click)
+                .next()
+                .expect("The onclick should match with the regex");
+            let id_obj = &single_capture[1];
+            BlurbRes::BigBlurb(String::from(id_obj))
+        }
+    }
 }
 
 pub fn extract_title_author_keywords(html: &str) -> BookMetaData {
