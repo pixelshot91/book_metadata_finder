@@ -33,7 +33,7 @@ BookMetaData {
 ## Sources
 
 | Source                                       | Metadata (in addition to title and authors) | Notes                                                                                                                                                                                                                        |
-|----------------------------------------------|---------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| -------------------------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Babelio](https://www.babelio.com/)          | blurb, keyword                              | No API available. No plan to build one.<br/>Babelio seem to block the IP if it detect this bot is doing some scrapping                                                                                                       |
 | [Decitre](https://www.decitre.fr/)           | blurb, keywords in commentaries             |                                                                                                                                                                                                                              |
 | [GoodReads](https://www.goodreads.com/)      | blurb, genres in english                    | An API was available, but GoodRead does not create new developer key. [See this](https://help.goodreads.com/s/article/Does-Goodreads-support-the-use-of-APIs)                                                                |
@@ -51,3 +51,18 @@ says the publishedDate is 2005.
 
 In the first response, we don't hqve a publisher, in the second we have.
 In the first response, the title use a big C for "Cité", but in the second, it use a small 'c'
+
+## Contributing
+Clone the 3 OpenCV repo:
+ - https://github.com/opencv/opencv.git (main repo)
+ - https://github.com/opencv/opencv_contrib.git (contain the barcode contrib module)
+ - https://github.com/opencv/opencv_extra.git (optionnal, contain the test data to test OpenCV)
+
+$ cd <open_cv>/
+$ mkdir build
+$ cd build/
+build/ $ cmake -DOPENCV_EXTRA_MODULES_PATH=<opencv_contrib>/modules ..
+
+You can test the barcode module with:
+build/ $ make opencv_test_barcode
+build/ $ OPENCV_TEST_DATA_PATH=<opencv_extra>/testdata/ bin/opencv_test_barcode
