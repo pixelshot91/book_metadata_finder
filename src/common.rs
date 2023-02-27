@@ -21,3 +21,9 @@ pub fn html_select(sel: &str) -> scraper::Selector {
 pub trait Provider {
     fn get_book_metadata_from_isbn(&self, isbn: &str) -> Option<BookMetaData>;
 }
+
+pub struct Ad {
+    pub title: String,
+    pub description: String,
+    pub price_cent: i32,
+}

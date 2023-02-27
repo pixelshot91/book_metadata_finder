@@ -2,11 +2,14 @@ mod babelio;
 mod cached_client;
 mod common;
 mod google_books;
+mod publisher;
 use std::env;
 use std::process::Command;
 use std::str;
 
 use itertools::Itertools;
+
+mod leboncoin;
 
 fn main() {
     let isbns: Vec<String> = env::args()
@@ -73,14 +76,22 @@ fn main() {
         .join("\n");
     let keywords = books.iter().flat_map(|b| &b.keywords).unique().join(", ");
 
-    let custom_message = std::fs::read_to_string("custom_message.txt").unwrap();
+    let custom_message = leboncoin::personal_info::CUSTOM_MESSAGE;
 
-    let mut ad = books_titles + "\n\nRésumé:\n" + &blurbs + "\n" + &custom_message;
+    let mut ad_description = books_titles + "\n\nRésumé:\n" + &blurbs + "\n" + &custom_message;
     if !keywords.is_empty() {
-        ad = ad + "\nMots-clés:\n" + &keywords;
+        ad_description = ad_description + "\nMots-clés:\n" + &keywords;
     }
 
-    println!("{}", ad);
+    println!("ad_description: {:#?}", ad_description);
+    let publisher = leboncoin::Leboncoin {};
+
+    let ad = common::Ad {
+        title: books.first().unwrap().title.clone(),
+        description: ad_description,
+        price_cent: 1000,
+    };
+    publisher::Publisher::publish(&publisher, ad);
 }
 
 fn vec_fmt(vec: Vec<String>) -> String {
