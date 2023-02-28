@@ -278,7 +278,6 @@ pub struct SubmitAd {
 
 pub fn upload_file(img_path: &str) -> String {
     let mut headers = reqwest::header::HeaderMap::new();
-    headers.insert("Content-Type", "multipart/form-data".parse().unwrap());
     headers.insert(
         "authorization",
         ["Bearer ", personal_info::LBC_TOKEN]
