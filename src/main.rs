@@ -12,8 +12,8 @@ use itertools::Itertools;
 mod leboncoin;
 
 fn main() {
-    let isbns: Vec<String> = env::args()
-        .skip(1)
+    let imgs_path = env::args().skip(1).collect_vec();
+    let isbns: Vec<String> = imgs_path.clone().into_iter()
         .map(|picture_path| {
             println!("{picture_path}");
             let output = Command::new(
@@ -80,16 +80,18 @@ fn main() {
 
     let mut ad_description = books_titles + "\n\nRésumé:\n" + &blurbs + "\n" + &custom_message;
     if !keywords.is_empty() {
-        ad_description = ad_description + "\nMots-clés:\n" + &keywords;
+        ad_description = ad_description + "\n\nMots-clés:\n" + &keywords;
     }
 
     println!("ad_description: {:#?}", ad_description);
+    println!("ad_description: {}", ad_description);
     let publisher = leboncoin::Leboncoin {};
 
     let ad = common::Ad {
         title: books.first().unwrap().title.clone(),
         description: ad_description,
         price_cent: 1000,
+        imgs_path,
     };
     publisher::Publisher::publish(&publisher, ad);
 }

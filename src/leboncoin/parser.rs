@@ -1,5 +1,21 @@
 use serde::{Deserialize, Serialize};
 
+////////////
+
+pub fn parse_file_upload(imgs_upload_response: &str) -> ImageSubmitResponse {
+    let r: ImageSubmitResponse = serde_json::from_str(imgs_upload_response).unwrap();
+    r
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImageSubmitResponse {
+    pub filename: String,
+    pub url: String,
+}
+
+////////////
+
 pub fn parse_send(send_response: &str) -> i64 {
     let s: structs::SendResponse = serde_json::from_str(send_response).unwrap();
     s.ad_id
@@ -21,6 +37,8 @@ mod structs {
         pub transaction_step: String,
     }
 }
+
+//////////////
 
 #[derive(Debug)]
 pub enum SubmitResult {
