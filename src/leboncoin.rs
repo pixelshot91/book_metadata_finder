@@ -8,6 +8,8 @@ mod request;
 
 impl Publisher for Leboncoin {
     fn publish(&self, ad: crate::common::Ad) -> bool {
+        crate::jwt_decoder::check_jwt_expiration(personal_info::LBC_TOKEN);
+
         let imgs_upload_response = request::upload_file(ad.imgs_path.first().unwrap());
         let imgs_lbc_ref = parser::parse_file_upload(&imgs_upload_response);
         let imgs_lbc_ref_2 = Image {

@@ -9,11 +9,14 @@ use std::str;
 
 use itertools::Itertools;
 
+mod jwt_decoder;
 mod leboncoin;
 
 fn main() {
     let imgs_path = env::args().skip(1).collect_vec();
-    let isbns: Vec<String> = imgs_path.clone().into_iter()
+    let isbns: Vec<String> = imgs_path
+        .clone()
+        .into_iter()
         .map(|picture_path| {
             println!("{picture_path}");
             let output = Command::new(
