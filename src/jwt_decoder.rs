@@ -12,9 +12,7 @@ pub fn check_jwt_expiration(jwt: &str) -> () {
     println!("p = {}", p);
     let decoded =
         base64::Engine::decode(&base64::engine::general_purpose::URL_SAFE_NO_PAD, p).unwrap();
-    println!("decoded: {}", std::str::from_utf8(&decoded).unwrap());
     let jj: JWT = serde_json::from_slice(&decoded).unwrap();
-    println!("exp = {}", jj.exp);
     let now = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
         .unwrap()

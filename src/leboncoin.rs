@@ -6,22 +6,35 @@ pub struct Leboncoin;
 mod parser;
 mod request;
 
+use itertools::Itertools;
+
 impl Publisher for Leboncoin {
     fn publish(&self, ad: crate::common::Ad) -> bool {
         crate::jwt_decoder::check_jwt_expiration(personal_info::LBC_TOKEN);
 
-        let imgs_upload_response = request::upload_file(ad.imgs_path.first().unwrap());
-        let imgs_lbc_ref = parser::parse_file_upload(&imgs_upload_response);
-        let imgs_lbc_ref_2 = Image {
-            name: imgs_lbc_ref.filename,
-            url: imgs_lbc_ref.url,
-        };
-        let send_answer: String = request::send(ad, vec![imgs_lbc_ref_2]);
+        let img_lbc_refs = ad
+            .imgs_path
+            .clone()
+            .into_iter()
+            .map(|img_filepath| {
+                let imgs_upload_response = request::upload_file(&img_filepath);
+                let imgs_lbc_ref = parser::parse_file_upload(&imgs_upload_response);
+                Image {
+                    name: imgs_lbc_ref.filename,
+                    url: imgs_lbc_ref.url,
+                }
+            })
+            .collect_vec();
+
+        let send_answer: String = request::send(ad, img_lbc_refs);
         let ad_id = parser::parse_send(&send_answer);
         let submit_answer = request::submit(ad_id).unwrap();
         let submit_ret = parser::parse_submit(&submit_answer);
         println!("submit_ret = {:#?}", submit_ret);
-        true
+        match submit_ret {
+            parser::SubmitResult::Submitted => true,
+            parser::SubmitResult::Captcha(_) => false,
+        }
     }
 }
 
