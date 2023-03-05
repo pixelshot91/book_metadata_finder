@@ -2,6 +2,7 @@ mod babelio;
 mod cached_client;
 mod common;
 mod google_books;
+mod image_tools;
 mod publisher;
 use std::env;
 use std::process::Command;

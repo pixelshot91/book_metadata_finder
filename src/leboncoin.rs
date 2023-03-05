@@ -2,22 +2,27 @@ extern crate reqwest;
 pub(crate) mod personal_info;
 use crate::publisher::Publisher;
 pub struct Leboncoin;
+use crate::image_tools;
 
 mod parser;
 mod request;
 
 use itertools::Itertools;
+use std::path::Path;
 
 impl Publisher for Leboncoin {
     fn publish(&self, ad: crate::common::Ad) -> bool {
         crate::jwt_decoder::check_jwt_expiration(personal_info::LBC_TOKEN);
-
         let img_lbc_refs = ad
             .imgs_path
             .clone()
             .into_iter()
             .map(|img_filepath| {
-                let imgs_upload_response = request::upload_file(&img_filepath);
+                let input_path = Path::new(&img_filepath);
+                let compressed_img_filepath = Path::new("compressed/")
+                    .join(input_path.file_name().unwrap().to_str().unwrap());
+                image_tools::downsize_image(800, 800, &input_path, &compressed_img_filepath);
+                let imgs_upload_response = request::upload_file(&compressed_img_filepath);
                 let imgs_lbc_ref = parser::parse_file_upload(&imgs_upload_response);
                 Image {
                     name: imgs_lbc_ref.filename,

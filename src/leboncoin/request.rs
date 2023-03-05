@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use reqwest;
 use serde::{Deserialize, Serialize};
 
@@ -276,7 +278,7 @@ pub struct SubmitAd {
     pub transaction_type: String,
 }
 
-pub fn upload_file(img_path: &str) -> String {
+pub fn upload_file(img_path: &Path) -> String {
     let mut headers = reqwest::header::HeaderMap::new();
     headers.insert(
         "authorization",
